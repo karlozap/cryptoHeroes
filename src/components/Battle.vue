@@ -1,0 +1,172 @@
+<template>
+  <main>
+    <div id="page-top">
+      <navbar></navbar>
+      <section class="masthead">
+        <div class="container d-flex h-100 align-items-center w-100 mw-100">
+          <div class="mx-left text-center">
+            <h1 class=" mx-1 my-5 text-uppercase">List of all heroes</h1><br>
+            <div style="float: left; margin: 1rem 2rem" v-for="(h, index) in heroes" :key="index">
+              <button type="" @click="chooseAnEnemy(h)"><character v-b-modal.enemy-info-modal type="button" class="" style="display: inline" v-bind:level=h.level v-bind:name=h.name v-bind:id=h.dna ></character></button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+<!--modal enemy info -->
+    <b-modal style="width: 700px" class="modal-lg " ref="enemyInfo"
+             id="enemy-info-modal"
+             title="Battle"
+             hide-footer>
+      <b-form class="w-100">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm">
+              <h2> {{ playerHero.name }}</h2>
+              <b-card class="" title="" style=" background-color: #4d4d4d; padding: 0%">
+                <h3>Skills</h3>
+                <div class="skl">
+                  <span class=" d-block p-2 text-white">Strength: {{playerHero.strength}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Dexterity: {{playerHero.dexterity}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Agility: {{playerHero.agility}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Constitution: {{playerHero.constitution}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Charisma: {{playerHero.charisma}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Intelligence: {{playerHero.intelligence}}</span>
+                </div>
+              </b-card>
+            </div>
+            <div class="col-sm">
+              <h2>VS</h2>
+            </div>
+            <div class="col-sm">
+              <h2> {{ enemyHero.name }}</h2>
+              <b-card class="" title="" style=" background-color: #4d4d4d; padding: 0%">
+                <h3>Skills</h3>
+                <div class="skl">
+                  <span class=" d-block p-2 text-white">Strength: {{enemyHero.strength}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Dexterity: {{enemyHero.dexterity}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Agility: {{enemyHero.agility}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Constitution: {{enemyHero.constitution}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Charisma: {{enemyHero.charisma}}</span>
+                  <span class="mx-auto d-block p-2 text-white">Intelligence: {{enemyHero.intelligence}}</span>
+                </div>
+              </b-card>
+            </div>
+          </div>
+        </div>
+        <br><br>
+        <b-button type="submit" variant="primary">Submit</b-button>
+        <b-button type="reset" variant="danger">Reset</b-button>
+      </b-form>
+    </b-modal>
+
+  </main>
+</template>
+
+<script>
+import NavBar from './NavBar'
+import Character from './Character'
+import CharacterSkills from './CharacterSkills'
+
+import {ugovor, web} from '../../contracts/contract'
+
+import * as Methods from '../../methods/method'
+
+export default {
+  name: 'Battle',
+  data () {
+    return {
+      playerHero: {
+        level: '',
+        name: '',
+        id: '',
+        strength: '',
+        dexterity: '',
+        agility: '',
+        constitution: '',
+        charisma: '',
+        intelligence: ''
+      },
+      enemyHero: {
+        level: '',
+        name: '',
+        id: '',
+        strength: '',
+        dexterity: '',
+        agility: '',
+        constitution: '',
+        charisma: '',
+        intelligence: ''
+      },
+      heroes: []
+    }
+  },
+  components: {
+    navbar: NavBar,
+    character: Character,
+    characterskills: CharacterSkills
+  },
+  mounted () {
+    console.log('mounted')
+    this.updateCharacters()
+  },
+  methods: {
+    attack (h) {
+      var pId = ugovor.getCharacterIdByOwner(web.eth.defaultAccount)
+      var eId = Methods.getAllCharacters().findIndex(hero => hero.dna === this.enemyHero.dna)
+      console.log(pId.toString())
+      console.log(eId.toString())
+      ugovor.attack(pId.toString(), eId.toString())
+    },
+    chooseAnEnemy (h) {
+      console.log(h)
+      this.enemyHero = h
+      this.attack(this.enemyHero)
+    },
+    updateCharacters () {
+      var id = ugovor.getCharacterIdByOwner(web.eth.defaultAccount)
+      this.heroes = Methods.getAllCharacters(id)
+      console.log(web.eth.accounts[0])
+      this.playerHero = Methods.getCharacterById(id.toNumber())
+    }
+  }
+}
+</script>
+
+<style scoped>
+
+.masthead {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 36rem;
+  margin-top: 8rem;
+  background: -webkit-gradient(linear, left top, left bottom, from(rgba(22, 22, 22, 0.3)), color-stop(75%, rgba(22, 22, 22, 0.7)), to(#161616)), url("../img/bg-main.jpg");
+  background: linear-gradient(to bottom, rgba(22, 22, 22, 0.3) 0%, rgba(22, 22, 22, 0.7) 75%, #161616 100%), url("../assets/img/bg-main.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-size: cover;
+}
+
+.masthead h1 {
+  font-family: 'Varela Round';
+  font-size: 4rem;
+  line-height: 2.5rem;
+  letter-spacing: 0.8rem;
+  background: -webkit-linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+}
+
+.masthead h2 {
+  max-width: 20rem;
+  font-size: 1rem;
+}
+
+body {
+  font-family: 'Nunito';
+  letter-spacing: 0.0625em;
+}
+
+</style>

@@ -1,6 +1,7 @@
 <template>
   <main>
-    <div id="page-top">
+    <LoadingBar v-if="loading"></LoadingBar>
+    <div v-if="!loading" id="page-top">
       <navbar></navbar>
       <section class="masthead">
         <div class="container d-flex h-100 align-items-center">
@@ -18,7 +19,8 @@
                   <span class="mx-auto d-block p-2 text-white">Charisma: {{playerHero.charisma}} <button type="button" class="btn btn-dark" @click="upgradeCurrentSkill(4)"> upgrade</button></span>
                   <span class="mx-auto d-block p-2 text-white">Intelligence: {{playerHero.intelligence}} <button type="button" class="btn btn-dark" @click="upgradeCurrentSkill(5)"> upgrade</button></span>
                 </div>
-                <button> save</button>
+                <a v-if="canUpgrade" @click="updateSkills" name="signup" class="btn btn-primary" style="height:38px; padding: 10px">Confirm</a>
+                <a v-if="canUpgrade" href="#/profile"  name="signup" class="btn btn-primary" style="height:38px; padding: 10px">Reset</a>
               </b-card>
           </div>
         </div>
@@ -29,15 +31,15 @@
 
 <script>
 import NavBar from './NavBar'
-
-import {ugovor, web} from '../../contracts/contract'
-
-import * as Methods from '../../methods/method'
+import CryptoHeroes from '@/js/cryptoheroes'
+import LoadingBar from './LoadingBar'
 
 export default {
   name: 'Training',
   data () {
     return {
+      loading: false,
+      canUpgrade: false,
       playerHero: {
         level: '',
         name: '',
@@ -52,16 +54,42 @@ export default {
       }
     }
   },
-  mounted () {
-    var id = ugovor.getCharacterIdByOwner(web.eth.defaultAccount)
-    this.playerHero = Methods.getCharacterById(id.toNumber())
+  beforeCreate: function () {
+    let self = this
+    this.loading = true
+    CryptoHeroes.init()
+    CryptoHeroes.characterID(window.web3.eth.accounts[0]).then(id => {
+      console.log(id.toNumber())
+      CryptoHeroes.characterDetails(id).then(character => {
+        this.playerHero = character
+        this.loading = false
+      })
+    }).catch(err => {
+      console.log(err)
+      self.$router.push('#/training')
+    })
   },
   components: {
-    navbar: NavBar
+    navbar: NavBar,
+    LoadingBar
   },
   methods: {
+    updateSkills: function () {
+      // let self = this
+      CryptoHeroes.characterID(window.web3.eth.accounts[0]).then(id => {
+        if (id !== '') {
+          CryptoHeroes.updateCharacterSkills(id, this.playerHero.trainingPoints, this.playerHero.strength, this.playerHero.dexterity, this.playerHero.agility, this.playerHero.constitution, this.playerHero.charisma, this.playerHero.intelligence).then(tx => {
+            console.log(tx)
+            this.canUpgrade = false
+          }).catch(err => {
+            console.log(err)
+          })
+        }
+      })
+    },
     upgradeCurrentSkill (skill) {
       if (this.playerHero.trainingPoints > 0) {
+        this.canUpgrade = true
         switch (skill) {
           case 0:
             this.playerHero.strength++
@@ -98,7 +126,7 @@ export default {
   width: 100%;
   height: auto;
   min-height: 36rem;
-  margin-top: 8rem;
+  margin-top: 7.6rem;
   background: -webkit-gradient(linear, left top, left bottom, from(rgba(22, 22, 22, 0.3)), color-stop(75%, rgba(22, 22, 22, 0.7)), to(#161616)), url("../img/bg-main.jpg");
   background: linear-gradient(to bottom, rgba(22, 22, 22, 0.3) 0%, rgba(22, 22, 22, 0.7) 75%, #161616 100%), url("../assets/img/bg-main.jpg");
   background-position: center;
@@ -109,7 +137,7 @@ export default {
 
 .masthead h1 {
   font-family: 'Varela Round';
-  font-size: 4rem;
+  font-size: 2rem;
   line-height: 2.5rem;
   letter-spacing: 0.8rem;
   background: -webkit-linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));

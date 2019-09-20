@@ -1,15 +1,19 @@
 <template>
   <div>
     <nav class="navbar navbar-light fixed-top" id="mainNav">
-            <a href="#/profile" class="btn btn-primary mx-auto">Home</a>
-            <a href="#/training" class="btn btn-primary mx-auto">Training</a>
-            <a href="#/battle" class="btn btn-primary mx-auto">Battle</a>
-            <a href="#/highscore" class="btn btn-primary mx-auto">Highscore</a>
+            <a href="#/profile" class="btn btn-primary mx-auto"><img  src="../assets/img/home.png"/> Home</a>
+            <a href="#/training" class="btn btn-primary mx-auto"><img  src="../assets/img/target.png"/> Training</a>
+            <a href="#/battle" class="btn btn-primary mx-auto"><img  src="../assets/img/sword.png"/> Battle</a>
+            <a href="#/highscore" class="btn btn-primary mx-auto"><img  src="../assets/img/podium.png"/> Highscore</a>
     </nav>
-    <div class="project">
-      <span class="mx-auto">crypto zombies</span>
-    </div>
-
+    <header class="masthead">
+        <div class="fixed-top">
+          <div class="">
+            <h2 style="font-size: 1rem; text-aligh: right; display: inline; float: right">Address: {{address}}</h2>
+            <h1 class="  my-4 text-uppercase">crypto heroes</h1>
+          </div>
+        </div>
+      </header>
   </div>
 </template>
 
@@ -18,8 +22,12 @@ export default {
   name: 'NavBar',
   data () {
     return {
+      address: ''
 
     }
+  },
+  mounted: function () {
+    this.address = window.web3.eth.accounts[0]
   }
 }
 </script>
@@ -30,16 +38,20 @@ export default {
   padding: 0;
 }
 
+h1, h2 {
+  font-weight:600;
+}
+
 #mainNav {
   min-height: 56px;
   background-color: rgb(56, 56, 56);
-  padding-top: 6rem;
+  padding-top: 4rem;
   overflow: auto;
 }
 
 #mainNav .navbar-toggler {
   font-size: 80%;
-  padding: 0.75rem;
+  padding: 0.65rem;
   color: #64a19d;
   border: 1px solid #64a19d;
 }
@@ -74,7 +86,7 @@ a {
 .btn {
   -webkit-box-shadow: 0 0.1875rem 0.1875rem 0 rgba(0, 0, 0, 0.1) !important;
   box-shadow: 0 0.1875rem 0.1875rem 0 rgba(0, 0, 0, 0.1) !important;
-  padding: 1.25rem 2rem;
+  padding: 1.25rem 1.8rem;
   font-family: 'Varela Round';
   font-size: 90%;
   text-transform: uppercase;
@@ -114,6 +126,32 @@ ul {
 #project {
   background-color: #161616;
   z-index: 20;
+}
+img {
+  width: 30px;
+}
+
+.masthead h1 {
+  font-family: 'Varela Round';
+  font-size: 3rem;
+  line-height: 2.5rem;
+  letter-spacing: 0.8rem;
+  background: -webkit-linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  width: 100%;
+  text-align: left
+}
+
+.masthead h2 {
+  font-family: 'Varela Round';
+  max-width: 30rem;
+  font-size: 1rem;
+  line-height: 1rem;
+  letter-spacing: 0.1rem;
+  background: -webkit-linear-gradient(rgba(255, 255, 255, 0.9), rgba(233, 224, 224, 0));
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
 }
 
 </style>

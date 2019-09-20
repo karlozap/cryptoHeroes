@@ -1,13 +1,14 @@
 <template>
   <main>
-    <div id="page-top">
+    <LoadingBar v-if="loading"></LoadingBar>
+    <div v-if="!loading" id="page-top">
       <navbar></navbar>
       <section class="masthead">
         <div class="container d-flex h-100 align-items-center w-100 mw-100">
           <div class="mx-left text-center">
             <h1 class=" mx-1 my-5 text-uppercase">List of all heroes</h1><br>
             <div style="float: left; margin: 1rem 2rem" v-for="(h, index) in heroes" :key="index">
-              <button type="" @click="chooseAnEnemy(h)"><character v-b-modal.enemy-info-modal type="button" class="" style="display: inline" v-bind:level=h.level v-bind:name=h.name v-bind:id=h.dna ></character></button>
+              <button type="" @click="chooseAnEnemy(h)" ><character v-b-modal.enemy-info-modal type="button" class="" style="display: inline" v-bind:level=h.level v-bind:name=h.name v-bind:id=h.dna ></character></button>
             </div>
           </div>
         </div>
@@ -55,7 +56,7 @@
           </div>
         </div>
         <br><br>
-        <b-button type="submit" variant="primary">Submit</b-button>
+        <b-button @click="attack()" type="" variant="primary">Submit</b-button>
         <b-button type="reset" variant="danger">Reset</b-button>
       </b-form>
     </b-modal>
@@ -67,19 +68,19 @@
 import NavBar from './NavBar'
 import Character from './Character'
 import CharacterSkills from './CharacterSkills'
-
-import {ugovor, web} from '../../contracts/contract'
-
-import * as Methods from '../../methods/method'
+import CryptoHeroes from '@/js/cryptoheroes'
+import LoadingBar from './LoadingBar'
 
 export default {
-  name: 'Battle',
+  name: 'battle',
   data () {
     return {
+      loading: false,
+      count: 0,
       playerHero: {
         level: '',
         name: '',
-        id: '',
+        dna: '',
         strength: '',
         dexterity: '',
         agility: '',
@@ -90,7 +91,7 @@ export default {
       enemyHero: {
         level: '',
         name: '',
-        id: '',
+        dna: '',
         strength: '',
         dexterity: '',
         agility: '',
@@ -104,31 +105,58 @@ export default {
   components: {
     navbar: NavBar,
     character: Character,
-    characterskills: CharacterSkills
+    characterskills: CharacterSkills,
+    LoadingBar
   },
-  mounted () {
-    console.log('mounted')
-    this.updateCharacters()
+  beforeCreate: function () {
+    console.log('beforeCreate')
+    this.loading = true
+    CryptoHeroes.init()
+
+    CryptoHeroes.characterID(window.web3.eth.accounts[0]).then(id => {
+      console.log(id.toNumber())
+      CryptoHeroes.characterDetails(id).then(character => {
+        this.playerHero = character
+      })
+    }).catch(err => {
+      console.log(err)
+    })
+
+    CryptoHeroes.countCharacters().then((result) => {
+      console.log(result.toNumber())
+      this.count = result
+      for (let i = 0; i < result; i++) {
+        CryptoHeroes.characterDetails(i).then(c => {
+          if (c.dna !== this.playerHero.dna) {
+            this.heroes.push(c)
+          }
+        })
+      }
+      this.loading = false
+    })
   },
   methods: {
-    attack (h) {
-      var pId = ugovor.getCharacterIdByOwner(web.eth.defaultAccount)
-      var eId = Methods.getAllCharacters().findIndex(hero => hero.dna === this.enemyHero.dna)
-      console.log(pId.toString())
-      console.log(eId.toString())
-      ugovor.attack(pId.toString(), eId.toString())
-    },
     chooseAnEnemy (h) {
       console.log(h)
       this.enemyHero = h
-      this.attack(this.enemyHero)
+      // this.attack(this.enemyHero)
     },
-    updateCharacters () {
-      var id = ugovor.getCharacterIdByOwner(web.eth.defaultAccount)
-      this.heroes = Methods.getAllCharacters(id)
-      console.log(web.eth.accounts[0])
-      this.playerHero = Methods.getCharacterById(id.toNumber())
+    attack () {
+      CryptoHeroes.getCharacterIdByDna(this.playerHero.dna.toString()).then(result => {
+        console.log('PlayerID: ' + result)
+      })
+
+      CryptoHeroes.getCharacterIdByDna(this.enemyHero.dna.toString()).then(result => {
+        console.log('EnemyID: ' + result)
+      })
+
+      CryptoHeroes.attackEnemy(1, 0).then((result) => {
+        console.log(result)
+      }).catch((err) => {
+        console.log(err)
+      })
     }
+
   }
 }
 </script>
@@ -140,8 +168,8 @@ export default {
   width: 100%;
   height: auto;
   min-height: 36rem;
-  margin-top: 8rem;
-  background: -webkit-gradient(linear, left top, left bottom, from(rgba(22, 22, 22, 0.3)), color-stop(75%, rgba(22, 22, 22, 0.7)), to(#161616)), url("../img/bg-main.jpg");
+  margin-top: 7.6rem;
+  background: -webkit-gradient(linear, left top, left bottom, from(rgba(22, 22, 22, 0.3)), color-stop(75%, rgba(22, 22, 22, 0.7)), to(#161616)), url("../assets/img/bg-main.jpg");
   background: linear-gradient(to bottom, rgba(22, 22, 22, 0.3) 0%, rgba(22, 22, 22, 0.7) 75%, #161616 100%), url("../assets/img/bg-main.jpg");
   background-position: center;
   background-repeat: no-repeat;
@@ -151,7 +179,7 @@ export default {
 
 .masthead h1 {
   font-family: 'Varela Round';
-  font-size: 4rem;
+  font-size: 2rem;
   line-height: 2.5rem;
   letter-spacing: 0.8rem;
   background: -webkit-linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
